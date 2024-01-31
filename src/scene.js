@@ -5,7 +5,7 @@ export default class Scene {
         this.frameRate = config.frameRate;
         this.objs = [];
         this.isPlaying = true;
-        this.timerID = setInterval(() => this.update(), 1000/this.frameRate);
+        this.updateTimer = setInterval(() => this.update(), Math.floor(1000/this.frameRate));
     }
 
     //add an object to the scene
@@ -16,7 +16,7 @@ export default class Scene {
 
     //remove all elements from the scene and clear the canvas
     clear() {
-        clearInterval(this.timerID);
+        clearInterval(this.updateTimer);
         this.objs.splice(0,this.objs.length);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.isPlaying = false;
@@ -24,7 +24,7 @@ export default class Scene {
 
     //self-explanatory
     pause() {
-        clearInterval(this.timerID);
+        clearInterval(this.updateTimer);
         this.isPlaying = false;
     }
 
@@ -32,7 +32,7 @@ export default class Scene {
     play() {
         if (this.isPlaying)
             return;
-        this.timerID = setInterval(() => this.update(), Math.floor(1000/this.frameRate));
+        this.updateTimer = setInterval(() => this.update(), Math.floor(1000/this.frameRate));
         this.isPlaying = true;
     }
 
