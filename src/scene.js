@@ -1,11 +1,17 @@
 export default class Scene {
     constructor(config) {
-        this.canvas = config.canvas;
+        //init the canvas
+        this.canvas = document.createElement('canvas');
+        this.canvas.setAttribute('width', config.width.toString());
+        this.canvas.setAttribute('height', config.height.toString());
+        document.body.appendChild(this.canvas);
+
         this.ctx = this.canvas.getContext('2d');
         this.frameRate = config.frameRate;
         this.objs = [];
-        this.isPlaying = true;
-        this.updateTimer = setInterval(() => this.update(), Math.floor(1000/this.frameRate));
+        this.isPlaying = false;
+
+        this.play();
     }
 
     //add an object to the scene
@@ -16,7 +22,6 @@ export default class Scene {
 
     //remove all elements from the scene and clear the canvas
     clear() {
-        clearInterval(this.updateTimer);
         this.objs.splice(0,this.objs.length);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.isPlaying = false;
@@ -24,7 +29,6 @@ export default class Scene {
 
     //self-explanatory
     pause() {
-        clearInterval(this.updateTimer);
         this.isPlaying = false;
     }
 
@@ -32,8 +36,8 @@ export default class Scene {
     play() {
         if (this.isPlaying)
             return;
-        this.updateTimer = setInterval(() => this.update(), Math.floor(1000/this.frameRate));
         this.isPlaying = true;
+        window.requestAnimationFrame(() => this.update());
     }
 
     //called once per frame
@@ -44,5 +48,7 @@ export default class Scene {
             obj.update();
             obj.draw();
         }
+        if (this.isPlaying)
+            window.requestAnimationFrame(() => this.update());
     }
 }
