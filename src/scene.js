@@ -4,7 +4,7 @@ export default class Scene {
         this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('width', config.width.toString());
         this.canvas.setAttribute('height', config.height.toString());
-        document.body.appendChild(this.canvas);
+        document.getElementById('canvas-container').appendChild(this.canvas);
 
         this.ctx = this.canvas.getContext('2d');
         this.frameRate = config.frameRate;
