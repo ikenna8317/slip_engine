@@ -1,7 +1,12 @@
+import Scene from '../../scene';
 import SceneObject from '../sceneobject';
 
 export default class Rectangle extends SceneObject {
-    constructor(scene, x, y, width, height, isStroke=true) {
+    width: number;
+    height: number;
+    isStroke: boolean;
+    
+    constructor(scene: Scene, x: number, y: number, width: number, height: number, isStroke: boolean = true) {
         super(scene, x, y);
         this.width = width;
         this.height = height;

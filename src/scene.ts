@@ -1,5 +1,19 @@
+import SceneObject from "./sceneobjs/sceneobject";
+
+type SceneConfig = {
+    width: number,
+    height: number,
+    frameRate: number
+};
+
 export default class Scene {
-    constructor(config) {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    frameRate: number;
+    objs: Array<SceneObject>;
+    isPlaying: boolean;
+
+    constructor(config: SceneConfig) {
         //init the canvas
         this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('width', config.width.toString());
@@ -15,9 +29,8 @@ export default class Scene {
     }
 
     //add an object to the scene
-    add(obj) {
-        if (obj.update && obj.draw)
-          this.objs.push(obj);
+    add(obj: SceneObject) {
+        this.objs.push(obj);
     }
 
     //remove all elements from the scene and clear the canvas

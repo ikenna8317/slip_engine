@@ -1,7 +1,10 @@
+import Scene from '../../scene';
 import Rectangle from '../shapes/rectangle';
 
 export default class MovingBox extends Rectangle {
-    constructor(scene, x, y, speedX, width=100, height=100) {
+    speedX: number;
+    
+    constructor(scene: Scene, x: number, y: number, speedX: number, width: number = 100, height: number = 100) {
         super(scene, x, y, width, height);
         this.speedX = speedX;
     }

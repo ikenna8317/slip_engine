@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ikenna8317/slip_engine#readme",
   "devDependencies": {
+    "css-loader": "^6.10.0",
     "pug-plugin": "^4.9.9",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
