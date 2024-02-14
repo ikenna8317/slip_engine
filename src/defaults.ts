@@ -2,6 +2,9 @@ import { EditorState } from "./editor";
 type Defaults = {
     cursor: {
         CIRCLE_CURSOR_RADIUS: number
+    },
+    graphic: {
+        SELECTION_OFFSET: number
     }
 };
 
@@ -21,7 +24,10 @@ const keyMap: KeyMapping = [
 
 const defaults: Defaults = {
     cursor: {
-        CIRCLE_CURSOR_RADIUS: 10
+        CIRCLE_CURSOR_RADIUS: 4
+    },
+    graphic: {
+        SELECTION_OFFSET: 5
     }
 }
 

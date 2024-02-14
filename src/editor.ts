@@ -1,6 +1,9 @@
 import EditorObject from "./editorobjs/editorobj";
 import { EVectorCursor } from "./editorobjs/editor/cursor";
+import GraphicEO from "./editorobjs/graphic/graphiceo";
+
 import { keyMap } from "./defaults";
+import VectorEO from "./editorobjs/graphic/vectoreo";
 
 type EditorConfig = {
     width: number;
@@ -51,14 +54,13 @@ export class Editor {
             if (e.repeat)
                 return;
 
-            // console.log('clicked on key ' + e.key);
            keyMap.forEach(value => {
                 if (e.key === value.key) {
                     if (value.resetOnToggle && (value.editorState === this.state))
                         this.state = EditorState.View;
                     else
                         this.state = value.editorState;
-                    // console.log('changed editor state');
+                    this.update();
                     return;
                 }
            })
@@ -67,6 +69,22 @@ export class Editor {
         //the vector cursor
         this.add(new EVectorCursor(this));
 
+        //TODO: add some basic shapes/objects to use an example to implement the highlight and selection functionality
+
+        const gobj = new GraphicEO(this, 50, 10);
+        gobj.init();
+
+        gobj.rootVector.childVectors.push(new VectorEO(this, 40, 20));
+        gobj.rootVector.childVectors.push(new VectorEO(this, 60, 20));
+
+        gobj.rootVector.childVectors[0].childVectors.push(new VectorEO(this, 35, 35));
+
+        gobj.rootVector.childVectors[1].childVectors.push(new VectorEO(this, 56, 35));
+        gobj.rootVector.childVectors[1].childVectors.push(new VectorEO(this, 64, 35));
+
+        this.add(gobj);
+
+        this.update();
     }
 
     add(obj: EditorObject): void {
