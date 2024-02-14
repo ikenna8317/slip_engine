@@ -1,8 +1,8 @@
-import Editor from "./editor";
+import {Editor} from "./editor";
 
 window.addEventListener('DOMContentLoaded', () => {
     const editor = new Editor({
-        width: 512,
+        width: 1024,
         height: 600
     });
 });

@@ -1,4 +1,4 @@
-import Editor from "../editor";
+import {Editor} from "../editor";
 
 export default class EditorObject {
     x: number;
@@ -11,6 +11,10 @@ export default class EditorObject {
         this.y = y;
         this.active = true;
         this.editor = editor;
+    }
+
+    preUpdate(): void {
+
     }
 
     draw(): void {
