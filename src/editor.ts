@@ -2,7 +2,7 @@ import EditorObject from "./editorobjs/editorobj";
 import { EVectorCursor } from "./editorobjs/editor/cursor";
 import GraphicEO from "./editorobjs/graphic/graphiceo";
 
-import { keyMap } from "./defaults";
+import { InputType, stateMap, StateTransition } from "./defaults";
 import VectorEO from "./editorobjs/graphic/vectoreo";
 
 type EditorConfig = {
@@ -60,41 +60,58 @@ export class Editor {
             if (e.repeat)
                 return;
 
-           keyMap.forEach(value => {
-                if (e.key === value.key) {
-                    this.prevState = this.state;
+            const validState: StateTransition | undefined = stateMap.find(statePair => { 
+                return statePair.inputType === InputType.KeyPress 
+                &&
+                statePair.key === e.key
+                &&
+                statePair.reqState === this.state;
+            });
 
-                    if (value.resetOnToggle && (value.editorState === this.state))
-                        this.state = EditorState.View;
-                    else
-                        this.state = value.editorState;
+            if (!validState) {
+                console.error('Unable to transition to proper state on key press: ' + e.key + ' from ' + this.state);
+                return;
+            }
 
-                    document.dispatchEvent(onStateChangeEvent);
-                    this.update();
-                }
-           });
+            this.prevState = this.state;
+            this.state = validState.nextState;
+            document.dispatchEvent(onStateChangeEvent);
         });
-        document.addEventListener('click', e => {
+
+        document.addEventListener('click', () => {
             if (!this.isCursorInBounds())
                 return;
 
-            if (this.state === EditorState.VectorDraw) {
-                this.state = EditorState.VectorBuild;
-                this.canvas.dispatchEvent(onStateChangeEvent);
-            } else if (this.state === EditorState.VectorBuild) {
-                this.addVertex();
+            const validState: StateTransition | undefined = stateMap.find(statePair => { 
+                return statePair.inputType === InputType.MouseClick 
+                &&
+                statePair.reqState === this.state;
+            });
+
+            if (!validState) {
+                console.error('Unable to transition to proper state on mouse click from ' + this.state);
+                return;
             }
+
+            this.prevState = this.state;
+            this.state = validState.nextState;
+            document.dispatchEvent(onStateChangeEvent);
         });
 
         //TODO: after testing the vector draw functionality, test passing previous state
         // into the custom state change event
-        // document.addEventListener('onstatechange', e => {
-        //     switch (this.state) {
-        //         case EditorState.VectorBuild:
-        //             this.addVertex();
-        //         break;
-        //     }
-        // });
+        document.addEventListener('onstatechange', () => {
+            console.log('state has changed from ' + this.prevState + ' to ' + this.state);
+            switch (this.state) {
+                case EditorState.View:
+                    if (this.prevState === EditorState.VectorBuild)
+                        this.resetGOBuffer();
+                break;
+                case EditorState.VectorBuild:
+                    this.addVector(this.cursor.x, this.cursor.y);
+                break;
+            }
+        });
 
         //the vector cursor
         this.add(new EVectorCursor(this));
@@ -127,24 +144,24 @@ export class Editor {
         return (this.cursor.x > 0 && this.cursor.x < this.canvas.width) && (this.cursor.y > 0 && this.cursor.y < this.canvas.height);
     }
 
-    addVertex(): void {
+    addVector(x: number, y: number): void {
         if (this.gobj && this.gobj.selectedVectors.length > 1)
             return;
 
         if (!this.gobj) {
-            this.gobj = new GraphicEO(this, this.cursor.x, this.cursor.y);
+            this.gobj = new GraphicEO(this, x, y);
             this.gobj.selectedVectors[0] = this.gobj.rootVector;
             this.add(this.gobj);
             return;
         }
         
-        const vector: VectorEO = new VectorEO(this.gobj, this.cursor.x, this.cursor.y);
+        const vector: VectorEO = new VectorEO(this.gobj, x, y);
         this.gobj.selectedVectors[0].addChild(vector);
         const numOfChildren: number = this.gobj.selectedVectors[0].childVectors.length;
         this.gobj.selectedVectors[0] = this.gobj.selectedVectors[0].childVectors[numOfChildren-1];
     }
 
-    emptyGOBuffer(): void {
+    resetGOBuffer(): void {
         this.gobj = null;
     }
 }

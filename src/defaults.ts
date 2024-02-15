@@ -1,4 +1,4 @@
-import { EditorState } from "./editor";
+import { Editor, EditorState } from "./editor";
 type Defaults = {
     cursor: {
         CIRCLE_CURSOR_RADIUS: number
@@ -14,17 +14,66 @@ type KeyMapping = Array<{
     resetOnToggle: boolean
 }>;
 
-const keyMap: KeyMapping = [
+const enum InputType {
+    KeyPress,
+    MouseClick
+};
+type StateTransition = {
+    inputType: InputType,
+    key?: string,
+    data?: object,
+    reqState: EditorState,
+    nextState: EditorState
+};
+
+// const keyMap: KeyMapping = [
+//     {
+//         key: 'v',
+//         editorState: EditorState.VectorDraw,
+//         resetOnToggle: true
+//     },
+//     {
+//         key: 'enter',
+//         editorState: EditorState.View,
+//         resetOnToggle: false
+//     },
+// ];
+
+const stateMap: Array<StateTransition> = [
     {
+        inputType: InputType.KeyPress,
         key: 'v',
-        editorState: EditorState.VectorDraw,
-        resetOnToggle: true
+        reqState: EditorState.View,
+        nextState: EditorState.VectorDraw
     },
     {
-        key: 'enter',
-        editorState: EditorState.View,
-        resetOnToggle: false
+        inputType: InputType.KeyPress,
+        key: 'v',
+        reqState: EditorState.VectorDraw,
+        nextState: EditorState.View
     },
+    {
+        inputType: InputType.MouseClick,
+        reqState: EditorState.VectorDraw,
+        nextState: EditorState.VectorBuild
+    },
+    {
+        inputType: InputType.MouseClick,
+        reqState: EditorState.VectorBuild,
+        nextState: EditorState.VectorBuild
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'Enter',
+        reqState: EditorState.VectorBuild,
+        nextState: EditorState.View
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'v',
+        reqState: EditorState.VectorBuild,
+        nextState: EditorState.VectorDraw
+    }
 ];
 
 const defaults: Defaults = {
@@ -37,6 +86,8 @@ const defaults: Defaults = {
 }
 
 export {
-    keyMap,
+    stateMap,
+    StateTransition,
+    InputType,
     defaults
 };
