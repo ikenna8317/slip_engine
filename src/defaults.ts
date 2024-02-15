@@ -19,7 +19,12 @@ const keyMap: KeyMapping = [
         key: 'v',
         editorState: EditorState.VectorDraw,
         resetOnToggle: true
-    }
+    },
+    {
+        key: 'enter',
+        editorState: EditorState.View,
+        resetOnToggle: false
+    },
 ];
 
 const defaults: Defaults = {

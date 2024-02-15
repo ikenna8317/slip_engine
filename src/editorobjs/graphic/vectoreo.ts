@@ -1,12 +1,13 @@
 import { defaults } from "../../defaults";
 import { Editor } from "../../editor";
+import GraphicEO from "./graphiceo";
 import InteractiveEO from "./interactiveeo";
 
 export default class VectorEO extends InteractiveEO {
     childVectors: Array<VectorEO>;
    
-    constructor(editor: Editor, x: number, y: number) {
-        super(editor, x, y);
+    constructor(graphicObj: GraphicEO, x: number, y: number) {
+        super(graphicObj.editor, x, y);
         this.width = defaults.cursor.CIRCLE_CURSOR_RADIUS;
         this.childVectors = [];
     }

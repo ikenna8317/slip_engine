@@ -12,7 +12,8 @@ type EditorConfig = {
 
 export const enum EditorState {
     View,
-    VectorDraw
+    VectorDraw,
+    VectorBuild
 };
 
 
@@ -23,6 +24,8 @@ export class Editor {
     cursor: {x: number, y: number};
     onlyUpdateOnInput: boolean;
     state: EditorState;
+    prevState: EditorState;
+    gobj: GraphicEO | null;
 
     constructor(config: EditorConfig) {
         const {
@@ -42,6 +45,9 @@ export class Editor {
         this.objs = [];
         this.onlyUpdateOnInput = true;
         this.state = EditorState.View;
+        this.prevState = EditorState.View;
+        this.gobj = null;
+        const onStateChangeEvent = new CustomEvent('onstatechange', { detail: EditorState.View });
 
         this.canvas.addEventListener('mousemove', event => {
             this.cursor.x = Math.floor(event.clientX);
@@ -56,33 +62,44 @@ export class Editor {
 
            keyMap.forEach(value => {
                 if (e.key === value.key) {
+                    this.prevState = this.state;
+
                     if (value.resetOnToggle && (value.editorState === this.state))
                         this.state = EditorState.View;
                     else
                         this.state = value.editorState;
+
+                    document.dispatchEvent(onStateChangeEvent);
                     this.update();
-                    return;
                 }
-           })
-        })
+           });
+        });
+        document.addEventListener('click', e => {
+            if (!this.isCursorInBounds())
+                return;
+
+            if (this.state === EditorState.VectorDraw) {
+                this.state = EditorState.VectorBuild;
+                this.canvas.dispatchEvent(onStateChangeEvent);
+            } else if (this.state === EditorState.VectorBuild) {
+                this.addVertex();
+            }
+        });
+
+        //TODO: after testing the vector draw functionality, test passing previous state
+        // into the custom state change event
+        // document.addEventListener('onstatechange', e => {
+        //     switch (this.state) {
+        //         case EditorState.VectorBuild:
+        //             this.addVertex();
+        //         break;
+        //     }
+        // });
 
         //the vector cursor
         this.add(new EVectorCursor(this));
 
         //TODO: add some basic shapes/objects to use an example to implement the highlight and selection functionality
-
-        const gobj = new GraphicEO(this, 50, 10);
-        gobj.init();
-
-        gobj.rootVector.childVectors.push(new VectorEO(this, 40, 20));
-        gobj.rootVector.childVectors.push(new VectorEO(this, 60, 20));
-
-        gobj.rootVector.childVectors[0].childVectors.push(new VectorEO(this, 35, 35));
-
-        gobj.rootVector.childVectors[1].childVectors.push(new VectorEO(this, 56, 35));
-        gobj.rootVector.childVectors[1].childVectors.push(new VectorEO(this, 64, 35));
-
-        this.add(gobj);
 
         this.update();
     }
@@ -108,5 +125,26 @@ export class Editor {
 
     isCursorInBounds(): boolean {
         return (this.cursor.x > 0 && this.cursor.x < this.canvas.width) && (this.cursor.y > 0 && this.cursor.y < this.canvas.height);
+    }
+
+    addVertex(): void {
+        if (this.gobj && this.gobj.selectedVectors.length > 1)
+            return;
+
+        if (!this.gobj) {
+            this.gobj = new GraphicEO(this, this.cursor.x, this.cursor.y);
+            this.gobj.selectedVectors[0] = this.gobj.rootVector;
+            this.add(this.gobj);
+            return;
+        }
+        
+        const vector: VectorEO = new VectorEO(this.gobj, this.cursor.x, this.cursor.y);
+        this.gobj.selectedVectors[0].addChild(vector);
+        const numOfChildren: number = this.gobj.selectedVectors[0].childVectors.length;
+        this.gobj.selectedVectors[0] = this.gobj.selectedVectors[0].childVectors[numOfChildren-1];
+    }
+
+    emptyGOBuffer(): void {
+        this.gobj = null;
     }
 }
