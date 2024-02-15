@@ -4,7 +4,7 @@ import VectorEO from "./vectoreo";
 
 export default class GraphicEO extends InteractiveEO {
     rootVector: VectorEO;
-    selectedVectors: Array<VectorEO>
+    selectedVectors: Array<VectorEO>;
 
     constructor(editor: Editor, x: number, y: number) {
         super(editor, x, y);
@@ -13,9 +13,6 @@ export default class GraphicEO extends InteractiveEO {
     }
 
     draw(): void {
-        if (!this.rootVector)
-            return;
-
         this.rootVector.draw();
     }
     
