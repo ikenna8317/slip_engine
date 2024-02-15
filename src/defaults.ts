@@ -1,4 +1,4 @@
-import { Editor, EditorState } from "./editor";
+import { EditorState } from "./editor";
 type Defaults = {
     cursor: {
         CIRCLE_CURSOR_RADIUS: number
@@ -8,10 +8,12 @@ type Defaults = {
     }
 };
 
+/* Possible input types */
 const enum InputType {
     KeyPress,
     MouseClick
 };
+
 type StateTransition = {
     inputType: InputType,
     key?: string,
@@ -20,6 +22,8 @@ type StateTransition = {
     nextState: EditorState
 };
 
+/* A map/table of each possible state transition
+and what input to listen for */
 const stateMap: Array<StateTransition> = [
     {
         inputType: InputType.KeyPress,
@@ -57,6 +61,7 @@ const stateMap: Array<StateTransition> = [
     }
 ];
 
+/* Constants used throughout the editor */
 const defaults: Defaults = {
     cursor: {
         CIRCLE_CURSOR_RADIUS: 4
