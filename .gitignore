@@ -1,2 +1,4 @@
 node_modules/
 dist/
+editor_state_diagram.pdf
+.gitignore
