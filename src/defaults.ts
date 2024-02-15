@@ -8,12 +8,6 @@ type Defaults = {
     }
 };
 
-type KeyMapping = Array<{
-    key: string,
-    editorState: EditorState,
-    resetOnToggle: boolean
-}>;
-
 const enum InputType {
     KeyPress,
     MouseClick
@@ -25,19 +19,6 @@ type StateTransition = {
     reqState: EditorState,
     nextState: EditorState
 };
-
-// const keyMap: KeyMapping = [
-//     {
-//         key: 'v',
-//         editorState: EditorState.VectorDraw,
-//         resetOnToggle: true
-//     },
-//     {
-//         key: 'enter',
-//         editorState: EditorState.View,
-//         resetOnToggle: false
-//     },
-// ];
 
 const stateMap: Array<StateTransition> = [
     {
