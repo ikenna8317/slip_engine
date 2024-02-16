@@ -21,7 +21,7 @@ export const enum EditorState {
 
 //main editor class
 export class Editor {
-    /* the main canvas interface in which objects are rendered */
+    /* the main canvas interface in which objects are drawn */
     canvas: HTMLCanvasElement;      
 
     /* the 2D context used for drawing operations on the canvas */
@@ -46,7 +46,9 @@ export class Editor {
     prevState: EditorState;
 
     /* The buffer that stores the graphic object that is being currently drawn by the user */
-    gobj: GraphicEO | null;
+    gobj: GraphicEO;
+
+    // currVector: VectorEO;
 
     constructor(config: EditorConfig) {
         const {
@@ -71,6 +73,7 @@ export class Editor {
         this.state = EditorState.View;
         this.prevState = EditorState.View;
         this.gobj = null;
+        // this.currVector = null;
 
         /* this event is dispatched/emitted whenever the state of the editor changes */
         const onStateChangeEvent = new Event('onstatechange');
@@ -129,7 +132,7 @@ export class Editor {
 
             //if no next state was found then exit 
             if (!validState) {
-                console.error('Unable to transition to proper state on mouse click from ' + this.state);
+                // console.error('Unable to transition to proper state on mouse click from ' + this.state);
                 return;
             }
 
@@ -141,7 +144,7 @@ export class Editor {
 
         /* Whenever the state of the editor changes this listener is meant to perform special editor-wide actions that are not tied to any specific object */
         document.addEventListener('onstatechange', () => {
-            console.log('state has changed from ' + this.prevState + ' to ' + this.state);
+            // console.log('state has changed from ' + this.prevState + ' to ' + this.state);
             switch (this.state) {
                 //if the new state is 'View'
                 case EditorState.View:
@@ -153,7 +156,7 @@ export class Editor {
                         || 
                         (this.prevState === EditorState.VectorDraw && this.gobj)) {
                         this.gobj.updateDimensions();
-                        this.resetGOBuffer();
+                        this.finishBuild();
                     }
                 break;
                 //...else if the new state is 'VectorBuild', regardless of the previous state
@@ -186,7 +189,6 @@ export class Editor {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         //for each object in the display list
         for (const obj of this.objs) {
-            //run the preUpdate() method
             obj.preUpdate();
             /* draw and update the object only if it is currently active */
             if (obj.active) {
@@ -215,21 +217,42 @@ export class Editor {
         if (!this.gobj) {
             //create a new graphic object, put it into the buffer, select its root vector and add it to the display list
             this.gobj = new GraphicEO(this, x, y);
-            this.gobj.selectedVectors[0] = this.gobj.rootVector;
+            this.gobj.selectedVectors[0] = this.gobj.vectors[0];
             this.add(this.gobj);
+            // console.log('New graphic object:');
+            // this.logVectors(this.gobj);
             return;
         }
+    
+        /* the currently selected vector in which the new vector will be 
+        connected to */
+        const currVector: VectorEO = this.gobj.selectedVectors[0];
         
         /* if the global graphic object exists then create a new vector,
           add it to the global graphic object */
-        const vector: VectorEO = new VectorEO(this.gobj, x, y);
-        this.gobj.selectedVectors[0].addChild(vector);
-        const numOfChildren: number = this.gobj.selectedVectors[0].childVectors.length;
-        this.gobj.selectedVectors[0] = this.gobj.selectedVectors[0].childVectors[numOfChildren-1];
+        const newVector: VectorEO = new VectorEO(this.gobj, x, y);
+        currVector.connect(newVector);
+        newVector.connect(currVector);
+
+        /* make the newly created vector the currently selected vector */
+        this.gobj.selectedVectors[0] = newVector;
+        this.gobj.vectors.push(newVector);
+    }
+
+    /* Debugging purposes only: list out the graph representation of the graphical object */
+    private logVectors(gobj: GraphicEO) {
+        console.log('children: %s', gobj.vectors.toString());
+        let i = 1;
+        gobj.vectors.forEach(vector => { 
+            console.log('%d\'s connected vectors: %s', i, vector.adjVectors.toString());
+            i++;
+        });
+        console.log('finished');
     }
 
     /* nullify the global graphics object to make space for the creation of new graphic objects */
-    resetGOBuffer(): void {
+    private finishBuild(): void {
+        this.gobj.selectedVectors.pop();
         this.gobj = null;
     }
 }

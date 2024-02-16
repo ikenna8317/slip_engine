@@ -3,14 +3,15 @@ import InteractiveEO from "./interactiveeo";
 import VectorEO from "./vectoreo";
 
 export default class GraphicEO extends InteractiveEO {
-    rootVector: VectorEO;
+    vectors: Array<VectorEO>;
     selectedVectors: Array<VectorEO>;
     extremeX: {min: number, max: number};
     extremeY: {min: number, max: number};
 
     constructor(editor: Editor, x: number, y: number) {
         super(editor, x, y);
-        this.rootVector = new VectorEO(this, this.x, this.y);
+        this.vectors = [];
+        this.vectors.push(new VectorEO(this, x, y));
         this.selectedVectors = [];
         this.extremeX = {min: x, max: x};
         this.extremeY = {min: y, max: y};
@@ -18,7 +19,16 @@ export default class GraphicEO extends InteractiveEO {
 
     draw(): void {
         super.draw();
-        this.rootVector.draw();
+        this.vectors.forEach(vector => {
+            vector.adjVectors.forEach(adjVector => {
+                this.editor.ctx.beginPath();
+                this.editor.ctx.strokeStyle = '#000';
+                this.editor.ctx.moveTo(vector.x, vector.y);
+                this.editor.ctx.lineTo(adjVector.x, adjVector.y);
+                this.editor.ctx.stroke();
+            });
+            vector.draw();
+        });
     }
 
     updateDimensions(): void {
@@ -31,23 +41,23 @@ export default class GraphicEO extends InteractiveEO {
     }
 
     private calcWidthAndHeight(): { width: number, height: number} {
-        this.rootVector.echoCall(this.findMinAndMax);
+        this.vectors.forEach(vector => this.findMinAndMax(vector));
         const width = this.extremeX.max - this.extremeX.min;
         const height = this.extremeY.max - this.extremeY.min;
 
         return { width, height };
     }
 
-    findMinAndMax(vector: VectorEO): void {
-        if (vector.x < vector.graphicObject.extremeX.min)
-            vector.graphicObject.extremeX.min = vector.x;
-        else if (vector.x > vector.graphicObject.extremeX.max)
-            vector.graphicObject.extremeX.max = vector.x;
+    private findMinAndMax(vector: VectorEO): void {
+        if (vector.x < this.extremeX.min)
+            this.extremeX.min = vector.x;
+        else if (vector.x > this.extremeX.max)
+            this.extremeX.max = vector.x;
 
-        if (vector.y < vector.graphicObject.extremeY.min)
-            vector.graphicObject.extremeY.min = vector.y;
-        else if (vector.y > vector.graphicObject.extremeY.max)
-            vector.graphicObject.extremeY.max = vector.y;
+        if (vector.y < this.extremeY.min)
+            this.extremeY.min = vector.y;
+        else if (vector.y > this.extremeY.max)
+            this.extremeY.max = vector.y;
     }
 
 }
