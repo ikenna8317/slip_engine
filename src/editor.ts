@@ -4,6 +4,7 @@ import GraphicEO from "./editorobjs/graphic/graphiceo";
 
 import { InputType, stateMap, StateTransition } from "./defaults";
 import VectorEO from "./editorobjs/graphic/vectoreo";
+import Box from "./editorobjs/graphic/box";
 
 //basic configuration object for setting up the editor canvas
 type EditorConfig = {
@@ -146,14 +147,14 @@ export class Editor {
                 case EditorState.View:
                     /* if the previous state was 'VectorBuild' that means we just finished creating a graphic object,
                      in that case empty the buffer holding the currently drawn graphics object */ 
-                    if (this.prevState === EditorState.VectorBuild) {
-                        this.resetGOBuffer();
-                        break;
-                    }
                     /* if the previous state was 'VectorDraw' and the global graphic object is not null,
-                     then that means the user is done creating the graphics object, empty the buffer */
-                    if (this.prevState === EditorState.VectorDraw && this.gobj)
+                    then that means the user is done creating the graphics object, empty the buffer */
+                    if ((this.prevState === EditorState.VectorBuild)
+                        || 
+                        (this.prevState === EditorState.VectorDraw && this.gobj)) {
+                        this.gobj.updateDimensions();
                         this.resetGOBuffer();
+                    }
                 break;
                 //...else if the new state is 'VectorBuild', regardless of the previous state
                 case EditorState.VectorBuild:
@@ -166,7 +167,8 @@ export class Editor {
         //add the vector cursor object to the editor display list
         this.add(new EVectorCursor(this));
 
-        //TODO: add some basic shapes/objects to use an example to implement the highlight and selection functionality
+        //TODO: add some basic shapes/objects to use an example to show the highlight and selection functionality
+        this.add(new Box(this, 150, 150));
 
         //update the frame
         this.update();

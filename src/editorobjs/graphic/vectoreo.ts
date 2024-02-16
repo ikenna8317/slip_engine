@@ -4,9 +4,11 @@ import InteractiveEO from "./interactiveeo";
 
 export default class VectorEO extends InteractiveEO {
     childVectors: Array<VectorEO>;
+    graphicObject: GraphicEO;
    
     constructor(graphicObj: GraphicEO, x: number, y: number) {
         super(graphicObj.editor, x, y);
+        this.graphicObject = graphicObj;
         this.width = defaults.cursor.CIRCLE_CURSOR_RADIUS;
         this.childVectors = [];
     }
@@ -39,5 +41,12 @@ export default class VectorEO extends InteractiveEO {
     //adds a vector to the list of child vectors
     addChild(vector: VectorEO): void {
         this.childVectors.push(vector);
+    }
+
+    //calls a specific callback function on this vector and recursively on all its children
+    echoCall(fn: (vector: VectorEO) => void) {
+        console.log('echo called!');
+        fn(this);
+        this.childVectors.forEach(vector => fn(vector));
     }
 }
