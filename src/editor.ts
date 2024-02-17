@@ -5,6 +5,7 @@ import GraphicEO from "./editorobjs/graphic/graphiceo";
 import { InputType, stateMap, StateTransition } from "./defaults";
 import VectorEO from "./editorobjs/graphic/vectoreo";
 import Box from "./editorobjs/graphic/box";
+import InteractiveEO from "./editorobjs/graphic/interactiveeo";
 
 //basic configuration object for setting up the editor canvas
 type EditorConfig = {
@@ -48,6 +49,8 @@ export class Editor {
     /* The buffer that stores the graphic object that is being currently drawn by the user */
     gobj: GraphicEO;
 
+    selections: Array<InteractiveEO>;
+
     // currVector: VectorEO;
 
     constructor(config: EditorConfig) {
@@ -62,7 +65,6 @@ export class Editor {
         this.canvas.setAttribute('width', width.toString());
         this.canvas.setAttribute('height', height.toString());
         this.canvas.setAttribute('aria-label', 'editor');
-        this.canvas.setAttribute('tabindex', '');
         this.canvas.style.backgroundColor = '#fff';
 
         /* Initialize the editor specific variables */
@@ -73,6 +75,7 @@ export class Editor {
         this.state = EditorState.View;
         this.prevState = EditorState.View;
         this.gobj = null;
+        this.selections = [];
         // this.currVector = null;
 
         /* this event is dispatched/emitted whenever the state of the editor changes */
@@ -97,7 +100,7 @@ export class Editor {
                 return;
 
             /* find the next state to switch to depending on the current state and key pressed */
-            const validState: StateTransition | undefined = stateMap.find(statePair => { 
+            const transition: StateTransition | undefined = stateMap.find(statePair => { 
                 return statePair.inputType === InputType.KeyPress 
                 &&
                 statePair.key === e.key
@@ -106,15 +109,15 @@ export class Editor {
             });
 
             //if no next state was found then exit 
-            if (!validState) {
+            if (!transition) {
                 // console.error('Unable to transition to proper state on key press: ' + e.key + ' from ' + this.state);
                 return;
             }
 
             /* Update the previous and current state and let the page know we have changed the state of the editor */
             this.prevState = this.state;
-            this.state = validState.nextState;
-            document.dispatchEvent(onStateChangeEvent);
+            this.state = transition.nextState;
+            this.canvas.dispatchEvent(onStateChangeEvent);
         });
 
         
@@ -124,32 +127,33 @@ export class Editor {
                 return;
 
             /* find the next state to switch to depending on the current state and key pressed */
-            const validState: StateTransition | undefined = stateMap.find(statePair => { 
+            const transition: StateTransition | undefined = stateMap.find(statePair => { 
                 return statePair.inputType === InputType.MouseClick 
                 &&
                 statePair.reqState === this.state;
             });
 
             //if no next state was found then exit 
-            if (!validState) {
+            if (!transition) {
                 // console.error('Unable to transition to proper state on mouse click from ' + this.state);
                 return;
             }
 
             /* Update the previous and current state and let the page know we have changed the state of the editor */
             this.prevState = this.state;
-            this.state = validState.nextState;
-            document.dispatchEvent(onStateChangeEvent);
+            this.state = transition.nextState;
+            this.canvas.dispatchEvent(onStateChangeEvent);
         });
 
         /* Whenever the state of the editor changes this listener is meant to perform special editor-wide actions that are not tied to any specific object */
-        document.addEventListener('onstatechange', () => {
+        this.canvas.addEventListener('onstatechange', () => {
             // console.log('state has changed from ' + this.prevState + ' to ' + this.state);
             switch (this.state) {
                 //if the new state is 'View'
                 case EditorState.View:
                     /* if the previous state was 'VectorBuild' that means we just finished creating a graphic object,
                      in that case empty the buffer holding the currently drawn graphics object */ 
+                     //OR
                     /* if the previous state was 'VectorDraw' and the global graphic object is not null,
                     then that means the user is done creating the graphics object, empty the buffer */
                     if ((this.prevState === EditorState.VectorBuild)
@@ -157,6 +161,18 @@ export class Editor {
                         (this.prevState === EditorState.VectorDraw && this.gobj)) {
                         this.gobj.updateDimensions();
                         this.finishBuild();
+                    } else if (this.prevState === EditorState.View) {
+                        //unselect all previously selected objects and empty the selections array
+                        this.selections.forEach(obj => obj.selected = false);
+                        this.selections.splice(0, this.selections.length);
+
+                        //find the first highlighted object and mark it as selected
+                        const selectedObj: EditorObject = this.objs.find(obj => obj instanceof InteractiveEO && obj.highlighted);
+
+                        if (selectedObj && selectedObj instanceof InteractiveEO) {
+                            selectedObj.selected = true;
+                            this.selections.push(selectedObj);
+                        }
                     }
                 break;
                 //...else if the new state is 'VectorBuild', regardless of the previous state
@@ -165,6 +181,7 @@ export class Editor {
                     this.addVector(this.cursor.x, this.cursor.y);
                 break;
             }
+            this.update();
         });
 
         //add the vector cursor object to the editor display list
@@ -217,7 +234,7 @@ export class Editor {
         if (!this.gobj) {
             //create a new graphic object, put it into the buffer, select its root vector and add it to the display list
             this.gobj = new GraphicEO(this, x, y);
-            this.gobj.selectedVectors[0] = this.gobj.vectors[0];
+            this.gobj.selectedVectors.push(this.gobj.vectors[0]);
             this.add(this.gobj);
             // console.log('New graphic object:');
             // this.logVectors(this.gobj);

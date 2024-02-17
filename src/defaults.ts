@@ -4,7 +4,8 @@ type Defaults = {
         CIRCLE_CURSOR_RADIUS: number
     },
     graphic: {
-        SELECTION_OFFSET: number
+        SELECTION_OFFSET: number,
+        SELECTION_BOX_BEAD_DIM: number
     }
 };
 
@@ -22,8 +23,8 @@ type StateTransition = {
     nextState: EditorState
 };
 
-/* A map/table of each possible state transition
-and what input to listen for */
+/* A map/table of all possible state transitions
+and what triggering input event to listen for */
 const stateMap: Array<StateTransition> = [
     {
         inputType: InputType.KeyPress,
@@ -58,6 +59,11 @@ const stateMap: Array<StateTransition> = [
         key: 'v',
         reqState: EditorState.VectorBuild,
         nextState: EditorState.VectorDraw
+    },
+    {
+        inputType: InputType.MouseClick,
+        reqState: EditorState.View,
+        nextState: EditorState.View
     }
 ];
 
@@ -67,7 +73,8 @@ const defaults: Defaults = {
         CIRCLE_CURSOR_RADIUS: 4
     },
     graphic: {
-        SELECTION_OFFSET: 5
+        SELECTION_OFFSET: 5,
+        SELECTION_BOX_BEAD_DIM: 5
     }
 }
 

@@ -17,17 +17,19 @@ export default class InteractiveEO extends EditorObject {
     }
 
     draw(): void {
-        if (this.highlighted)
+        if (this.selected)
+            this.drawSelectionBox();
+        else if (this.highlighted)
             this.drawHighlightBox();
     }
 
     update(): void {
         this.highlighted = this.editor.state === EditorState.View && this.doesCursorOverlap();
+        // this.selected = this.selected && this.highlighted;
         // console.log('Highlighted: ' + this.highlighted);
     }
 
     private drawHighlightBox(): void {
-        // console.log('draw highlight box');
         this.editor.ctx.strokeStyle = '#04a8d1';
         this.editor.ctx.strokeRect(
             this.x - defaults.graphic.SELECTION_OFFSET,
@@ -37,8 +39,31 @@ export default class InteractiveEO extends EditorObject {
         );
     }
 
+    private drawSelectionBox(): void {
+        this.drawHighlightBox();
+
+        const _miniw: number = defaults.graphic.SELECTION_BOX_BEAD_DIM;
+
+        this.editor.ctx.fillStyle = '#fff';
+        this.editor.ctx.strokeStyle = '#000';
+
+        for (let i: number = this.x - defaults.graphic.SELECTION_OFFSET - (_miniw/2);
+         i < this.x + this.width + defaults.graphic.SELECTION_OFFSET*2;
+         i+=(this.width + defaults.graphic.SELECTION_OFFSET*2)/2
+        ) 
+            this.editor.ctx.strokeRect(i, this.y - defaults.graphic.SELECTION_OFFSET - _miniw/2, _miniw, _miniw);
+
+        this.editor.ctx.strokeRect(this.x - defaults.graphic.SELECTION_OFFSET - (_miniw/2), this.y + this.height/2, _miniw, _miniw);
+        this.editor.ctx.strokeRect((this.x + this.width) + defaults.graphic.SELECTION_OFFSET - (_miniw/2), this.y + this.height/2, _miniw, _miniw);
+
+        for (let i: number = this.x - defaults.graphic.SELECTION_OFFSET - (_miniw/2);
+         i < this.x + this.width + defaults.graphic.SELECTION_OFFSET*2;
+         i+=(this.width + defaults.graphic.SELECTION_OFFSET*2)/2
+        ) 
+            this.editor.ctx.strokeRect(i, this.y + this.height + defaults.graphic.SELECTION_OFFSET - _miniw/2, _miniw, _miniw);
+    }
+
     private doesCursorOverlap(): boolean {
-        // console.log('cursor overlaps object');
         return (this.editor.cursor.x > (this.x - defaults.graphic.SELECTION_OFFSET))
         &&
         (this.editor.cursor.x < (this.x + this.width + defaults.graphic.SELECTION_OFFSET)) 
@@ -46,6 +71,5 @@ export default class InteractiveEO extends EditorObject {
         (this.editor.cursor.y > (this.y - defaults.graphic.SELECTION_OFFSET))
         &&
         (this.editor.cursor.y < (this.y + this.height + defaults.graphic.SELECTION_OFFSET));
-        // console.log('Overlaps: ' + overlaps);
     }
 }
