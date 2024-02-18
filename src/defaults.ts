@@ -1,7 +1,8 @@
 import { EditorState } from "./editor";
 type Defaults = {
     cursor: {
-        CIRCLE_CURSOR_RADIUS: number
+        CIRCLE_CURSOR_RADIUS: number,
+        MOUSE_OFFSET: number
     },
     graphic: {
         SELECTION_OFFSET: number,
@@ -83,13 +84,26 @@ const stateMap: Array<StateTransition> = [
         inputType: InputType.MouseClick,
         reqState: EditorState.VectorEdit,
         nextState: EditorState.VectorEdit
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'v',
+        reqState: EditorState.VectorEdit,
+        nextState: EditorState.VectorDraw
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'e',
+        reqState: EditorState.VectorBuild,
+        nextState: EditorState.VectorEdit
     }
 ];
 
 /* Constants used throughout the editor */
 const defaults: Defaults = {
     cursor: {
-        CIRCLE_CURSOR_RADIUS: 4
+        CIRCLE_CURSOR_RADIUS: 4,
+        MOUSE_OFFSET: 10
     },
     graphic: {
         SELECTION_OFFSET: 5,

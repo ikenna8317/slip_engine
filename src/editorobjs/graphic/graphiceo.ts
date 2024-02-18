@@ -18,7 +18,6 @@ export default class GraphicEO extends InteractiveEO {
     }
 
     draw(): void {
-        super.draw();
         this.vectors.forEach(vector => {
             vector.adjVectors.forEach(adjVector => {
                 this.editor.ctx.beginPath();
@@ -29,6 +28,7 @@ export default class GraphicEO extends InteractiveEO {
             });
             vector.draw();
         });
+        super.draw();
     }
 
     update(): void {
@@ -44,6 +44,15 @@ export default class GraphicEO extends InteractiveEO {
 
         this.width = width;
         this.height = height;
+    }
+
+    unselectAll(): void {
+        // this.selectedVectors.forEach(vector => vector.highlighted = vector.selected = false);
+       this.vectors.forEach(vector => {
+        if (vector.highlighted || vector.selected)
+            vector.highlighted = vector.selected = false;
+       });
+        this.selectedVectors.splice(0, this.selectedVectors.length)
     }
 
     private calcWidthAndHeight(): { width: number, height: number} {

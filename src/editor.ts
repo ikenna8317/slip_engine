@@ -2,7 +2,7 @@ import EditorObject from "./editorobjs/editorobj";
 import { EVectorCursor } from "./editorobjs/editor/cursor";
 import GraphicEO from "./editorobjs/graphic/graphiceo";
 
-import { InputType, stateMap, StateTransition } from "./defaults";
+import { defaults, InputType, stateMap, StateTransition } from "./defaults";
 import VectorEO from "./editorobjs/graphic/vectoreo";
 import Box from "./editorobjs/graphic/box";
 import InteractiveEO from "./editorobjs/graphic/interactiveeo";
@@ -15,10 +15,10 @@ type EditorConfig = {
 
 //possible states the editor can be in
 export const enum EditorState {
-    View,
-    VectorDraw,
-    VectorBuild,
-    VectorEdit
+    View,           //0
+    VectorDraw,     //1
+    VectorBuild,    //2
+    VectorEdit      //3
 };
 
 //main editor class
@@ -31,6 +31,8 @@ export class Editor {
 
     /* An array of objects that gets drawn on the canvas */
     objs: Array<EditorObject>;      
+
+    onStateChangeEvent: Event;
 
     /* the rounded down x and y position of the mouse */
     cursor: {x: number, y: number};     
@@ -81,13 +83,13 @@ export class Editor {
         // this.currVector = null;
 
         /* this event is dispatched/emitted whenever the state of the editor changes */
-        const onStateChangeEvent = new Event('onstatechange');
+        this.onStateChangeEvent = new Event('onstatechange');
 
         /* Whenever the user moves the mouse... */
         this.canvas.addEventListener('mousemove', event => {
             /* Update the cursor position with the rounded down value of the users mouse position */
-            this.cursor.x = Math.floor(event.clientX);
-            this.cursor.y = Math.floor(event.clientY);
+            this.cursor.x = Math.floor(event.clientX) - defaults.cursor.MOUSE_OFFSET;
+            this.cursor.y = Math.floor(event.clientY) - defaults.cursor.MOUSE_OFFSET;
 
             /* Update/refresh the canvas */
             if (this.onlyUpdateOnInput)
@@ -101,25 +103,7 @@ export class Editor {
             if (e.repeat || !this.isCursorInBounds())
                 return;
 
-            /* find the next state to switch to depending on the current state and key pressed */
-            const transition: StateTransition | undefined = stateMap.find(statePair => { 
-                return statePair.inputType === InputType.KeyPress 
-                &&
-                statePair.key === e.key
-                &&
-                statePair.reqState === this.state;
-            });
-
-            //if no next state was found then exit 
-            if (!transition) {
-                // console.error('Unable to transition to proper state on key press: ' + e.key + ' from ' + this.state);
-                return;
-            }
-
-            /* Update the previous and current state and let the page know we have changed the state of the editor */
-            this.prevState = this.state;
-            this.state = transition.nextState;
-            this.canvas.dispatchEvent(onStateChangeEvent);
+            this.transitionState(InputType.KeyPress, e.key);
         });
 
         
@@ -128,23 +112,7 @@ export class Editor {
             if (!this.isCursorInBounds())
                 return;
 
-            /* find the next state to switch to depending on the current state and key pressed */
-            const transition: StateTransition | undefined = stateMap.find(statePair => { 
-                return statePair.inputType === InputType.MouseClick 
-                &&
-                statePair.reqState === this.state;
-            });
-
-            //if no next state was found then exit 
-            if (!transition) {
-                // console.error('Unable to transition to proper state on mouse click from ' + this.state);
-                return;
-            }
-
-            /* Update the previous and current state and let the page know we have changed the state of the editor */
-            this.prevState = this.state;
-            this.state = transition.nextState;
-            this.canvas.dispatchEvent(onStateChangeEvent);
+            this.transitionState(InputType.MouseClick);
         });
 
         /* Whenever the state of the editor changes this listener is meant to perform special editor-wide actions that are not tied to any specific object */
@@ -160,7 +128,9 @@ export class Editor {
                     then that means the user is done creating the graphics object, empty the buffer */
                     if ((this.prevState === EditorState.VectorBuild)
                         || 
-                        (this.prevState === EditorState.VectorDraw && this.gobj)) {
+                        (this.prevState === EditorState.VectorDraw && this.gobj)
+                        ||
+                        (this.prevState === EditorState.VectorEdit)) {
                         this.gobj.updateDimensions();
                         this.resetGOBuffer();
                     } else if (this.prevState === EditorState.View) {
@@ -175,10 +145,6 @@ export class Editor {
                             selectedObj.selected = true;
                             this.selections.push(selectedObj);
                         }
-                    } else if (this.prevState === EditorState.VectorEdit) {
-                        this.gobj.selectedVectors.forEach(vector => vector.selected = false);
-                        this.gobj.selectedVectors.splice(0, this.gobj.selectedVectors.length);
-                        this.resetGOBuffer();
                     }
                 break;
                 //...else if the new state is 'VectorBuild', regardless of the previous state
@@ -199,7 +165,7 @@ export class Editor {
                     } else if (this.prevState === EditorState.VectorEdit) {
                         /* check for selected vectors */
                         //mark all currently selected vectors as false and clear the list of selected vectors
-                        console.log('number of selected vectors: %d', this.gobj.selectedVectors.length);
+                        // console.log('number of selected vectors: %d', this.gobj.selectedVectors.length);
                         this.gobj.selectedVectors.forEach(vector => vector.selected = false);
                         this.gobj.selectedVectors.splice(0, this.gobj.selectedVectors.length);
 
@@ -221,8 +187,9 @@ export class Editor {
         this.add(new EVectorCursor(this));
 
         //TODO: add some basic shapes/objects to use an example to show the highlight and selection functionality
-        this.add(new Box(this, 150, 150));
+        // this.add(new Box(this, 150, 150));
 
+        // setInterval(() => console.log(this.gobj), 60000);
         //update the frame
         this.update();
     }
@@ -234,7 +201,7 @@ export class Editor {
     }
 
     //updates the frame
-    update(): void {
+    private update(): void {
         //clear the entire canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         //for each object in the display list
@@ -258,7 +225,7 @@ export class Editor {
     }
 
     /* adds a vector to the global graphic object if it exists, otherwise create a new graphic object */
-    addVector(x: number, y: number): void {
+    private addVector(x: number, y: number): void {
         /* if more than one vector is selected then exit */
         if (this.gobj && this.gobj.selectedVectors.length > 1)
             return;
@@ -283,10 +250,36 @@ export class Editor {
         const newVector: VectorEO = new VectorEO(this.gobj, x, y);
         currVector.connect(newVector);
         newVector.connect(currVector);
+        currVector.selected = false;
 
         /* make the newly created vector the currently selected vector */
         this.gobj.selectedVectors[0] = newVector;
+        newVector.selected = true;
         this.gobj.vectors.push(newVector);
+    }
+
+    private transitionState(inputType: InputType, key?: string): StateTransition {
+        /* find the next state to switch to depending on the current state and key pressed */
+        const transition: StateTransition | undefined = stateMap.find(statePair => 
+            statePair.inputType === inputType
+            &&
+            statePair.reqState === this.state
+            &&
+            (!key || statePair.key === key)
+        );
+
+        //if no next state was found then exit 
+        if (!transition) {
+            // console.error('Unable to transition to proper state on mouse click from ' + this.state);
+            return;
+        }
+
+        /* Update the previous and current state and let the page know we have changed the state of the editor */
+        this.prevState = this.state;
+        this.state = transition.nextState;
+        this.canvas.dispatchEvent(this.onStateChangeEvent);
+
+        return transition;
     }
 
     /* Debugging purposes only: list out the graph representation of the graphical object */
@@ -303,7 +296,7 @@ export class Editor {
     /* nullify the global graphics object to make space for the creation of new graphic objects */
     private resetGOBuffer(): void {
         if (this.gobj) {
-            this.gobj.selectedVectors.splice(0, this.gobj.selectedVectors.length);
+            this.gobj.unselectAll();
             this.gobj = null;
         }
     }
