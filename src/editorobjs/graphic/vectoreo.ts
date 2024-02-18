@@ -1,4 +1,5 @@
 import { defaults } from "../../defaults";
+import { EditorState } from "../../editor";
 import GraphicEO from "./graphiceo";
 import InteractiveEO from "./interactiveeo";
 
@@ -13,9 +14,36 @@ export default class VectorEO extends InteractiveEO {
     }
 
     draw(): void {
-        //draw a white circle representing the current vector itself
+        if (this.selected)
+            this.drawSelectionArc();
+        else {
+            if (this.highlighted)
+                this.drawHighlightBox();
+            //draw a white circle representing the current vector itself
+            this.editor.ctx.strokeStyle = '#000';
+            this.editor.ctx.fillStyle = '#fff';
+            this.editor.ctx.beginPath();
+            this.editor.ctx.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
+            this.editor.ctx.stroke();
+            this.editor.ctx.fill();
+        }
+    }
+
+    update(): void {
+        this.highlighted = this.doesCursorOverlap();
+        // console.log('Editor state: %d', this.editor.state);
+        // console.log('Editor object: %O', this.editor.gobj);
+        // console.log('Cursor overlaps: ' + this.doesCursorOverlap());
+
+        // if (this.highlighted)
+        //     console.log('vector has been highlighted');
+        // if (this.selected)
+        //     console.log('vector has been selected');
+    }
+
+    private drawSelectionArc(): void {
         this.editor.ctx.strokeStyle = '#000';
-        this.editor.ctx.fillStyle = '#fff';
+        this.editor.ctx.fillStyle = defaults.graphic.SELECT_COLOR;
         this.editor.ctx.beginPath();
         this.editor.ctx.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
         this.editor.ctx.stroke();

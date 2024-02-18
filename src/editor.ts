@@ -17,7 +17,8 @@ type EditorConfig = {
 export const enum EditorState {
     View,
     VectorDraw,
-    VectorBuild
+    VectorBuild,
+    VectorEdit
 };
 
 //main editor class
@@ -65,6 +66,7 @@ export class Editor {
         this.canvas.setAttribute('width', width.toString());
         this.canvas.setAttribute('height', height.toString());
         this.canvas.setAttribute('aria-label', 'editor');
+        this.canvas.setAttribute('background-color', '#33f1ff');
         this.canvas.style.backgroundColor = '#fff';
 
         /* Initialize the editor specific variables */
@@ -160,7 +162,7 @@ export class Editor {
                         || 
                         (this.prevState === EditorState.VectorDraw && this.gobj)) {
                         this.gobj.updateDimensions();
-                        this.finishBuild();
+                        this.resetGOBuffer();
                     } else if (this.prevState === EditorState.View) {
                         //unselect all previously selected objects and empty the selections array
                         this.selections.forEach(obj => obj.selected = false);
@@ -173,12 +175,43 @@ export class Editor {
                             selectedObj.selected = true;
                             this.selections.push(selectedObj);
                         }
+                    } else if (this.prevState === EditorState.VectorEdit) {
+                        this.gobj.selectedVectors.forEach(vector => vector.selected = false);
+                        this.gobj.selectedVectors.splice(0, this.gobj.selectedVectors.length);
+                        this.resetGOBuffer();
                     }
                 break;
                 //...else if the new state is 'VectorBuild', regardless of the previous state
                 case EditorState.VectorBuild:
                     //add a vector object to the position of the cursor
                     this.addVector(this.cursor.x, this.cursor.y);
+                break;
+                case EditorState.VectorEdit:
+                    if (this.prevState === EditorState.View) {
+                        const selectedObj: InteractiveEO = this.selections.find(obj => obj instanceof GraphicEO)
+                        // console.log('vector edit mode');
+                        // console.log(selectedObj);
+
+                        if (selectedObj && selectedObj instanceof GraphicEO) {
+                            // console.log('selected the graphics object');
+                            this.gobj = selectedObj;
+                        }
+                    } else if (this.prevState === EditorState.VectorEdit) {
+                        /* check for selected vectors */
+                        //mark all currently selected vectors as false and clear the list of selected vectors
+                        console.log('number of selected vectors: %d', this.gobj.selectedVectors.length);
+                        this.gobj.selectedVectors.forEach(vector => vector.selected = false);
+                        this.gobj.selectedVectors.splice(0, this.gobj.selectedVectors.length);
+
+                        //find the first vector that is highlighted
+                        const selectedVector: VectorEO = this.gobj.vectors.find(vector => vector.highlighted);
+
+                        //add the selected vector to the object list of selected vectors and mark the vector as selected
+                        if (selectedVector) {
+                            this.gobj.selectedVectors.push(selectedVector);
+                            selectedVector.selected = true;
+                        }
+                    }
                 break;
             }
             this.update();
@@ -268,8 +301,10 @@ export class Editor {
     }
 
     /* nullify the global graphics object to make space for the creation of new graphic objects */
-    private finishBuild(): void {
-        this.gobj.selectedVectors.pop();
-        this.gobj = null;
+    private resetGOBuffer(): void {
+        if (this.gobj) {
+            this.gobj.selectedVectors.splice(0, this.gobj.selectedVectors.length);
+            this.gobj = null;
+        }
     }
 }

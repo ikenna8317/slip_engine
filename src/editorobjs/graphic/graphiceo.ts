@@ -1,4 +1,4 @@
-import { Editor } from "../../editor";
+import { Editor, EditorState } from "../../editor";
 import InteractiveEO from "./interactiveeo";
 import VectorEO from "./vectoreo";
 
@@ -29,6 +29,12 @@ export default class GraphicEO extends InteractiveEO {
             });
             vector.draw();
         });
+    }
+
+    update(): void {
+        super.update();
+        if (this.editor.state === EditorState.VectorEdit && this.editor.gobj === this)
+            this.vectors.forEach(vector => vector.update());
     }
 
     updateDimensions(): void {

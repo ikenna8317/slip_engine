@@ -9,7 +9,7 @@ export class EVectorCursor extends EditorObject {
         this.active = false;
     }
     preUpdate(): void {
-        this.active = (this.editor.state != EditorState.View) && this.editor.isCursorInBounds();
+        this.active = ((this.editor.state === EditorState.VectorDraw) || (this.editor.state === EditorState.VectorBuild)) && this.editor.isCursorInBounds();
     }
     draw(): void {
         this.editor.ctx.strokeStyle = '#000';

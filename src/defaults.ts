@@ -5,7 +5,9 @@ type Defaults = {
     },
     graphic: {
         SELECTION_OFFSET: number,
-        SELECTION_BOX_BEAD_DIM: number
+        SELECTION_BOX_BEAD_DIM: number,
+        HIGHLIGHT_COLOR: string,
+        SELECT_COLOR: string
     }
 };
 
@@ -64,6 +66,23 @@ const stateMap: Array<StateTransition> = [
         inputType: InputType.MouseClick,
         reqState: EditorState.View,
         nextState: EditorState.View
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'Enter',
+        reqState: EditorState.View,
+        nextState: EditorState.VectorEdit
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'Enter',
+        reqState: EditorState.VectorEdit,
+        nextState: EditorState.View
+    },
+    {
+        inputType: InputType.MouseClick,
+        reqState: EditorState.VectorEdit,
+        nextState: EditorState.VectorEdit
     }
 ];
 
@@ -74,7 +93,9 @@ const defaults: Defaults = {
     },
     graphic: {
         SELECTION_OFFSET: 5,
-        SELECTION_BOX_BEAD_DIM: 5
+        SELECTION_BOX_BEAD_DIM: 5,
+        HIGHLIGHT_COLOR: '#04a8d1',
+        SELECT_COLOR: '#33f1ff'
     }
 }
 

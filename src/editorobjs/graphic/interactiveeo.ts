@@ -25,12 +25,10 @@ export default class InteractiveEO extends EditorObject {
 
     update(): void {
         this.highlighted = this.editor.state === EditorState.View && this.doesCursorOverlap();
-        // this.selected = this.selected && this.highlighted;
-        // console.log('Highlighted: ' + this.highlighted);
     }
 
-    private drawHighlightBox(): void {
-        this.editor.ctx.strokeStyle = '#04a8d1';
+    protected drawHighlightBox(): void {
+        this.editor.ctx.strokeStyle = defaults.graphic.HIGHLIGHT_COLOR;
         this.editor.ctx.strokeRect(
             this.x - defaults.graphic.SELECTION_OFFSET,
             this.y - defaults.graphic.SELECTION_OFFSET,
@@ -63,7 +61,7 @@ export default class InteractiveEO extends EditorObject {
             this.editor.ctx.strokeRect(i, this.y + this.height + defaults.graphic.SELECTION_OFFSET - _miniw/2, _miniw, _miniw);
     }
 
-    private doesCursorOverlap(): boolean {
+    protected doesCursorOverlap(): boolean {
         return (this.editor.cursor.x > (this.x - defaults.graphic.SELECTION_OFFSET))
         &&
         (this.editor.cursor.x < (this.x + this.width + defaults.graphic.SELECTION_OFFSET)) 
