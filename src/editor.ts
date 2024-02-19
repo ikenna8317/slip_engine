@@ -265,7 +265,7 @@ export class Editor {
             &&
             statePair.reqState === this.state
             &&
-            (!key || statePair.key === key)
+            (!key || (statePair.key === key))
         );
 
         //if no next state was found then exit 
