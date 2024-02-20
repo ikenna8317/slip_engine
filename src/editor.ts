@@ -147,8 +147,10 @@ export class Editor {
                         }
                     }
                 break;
-                //...else if the new state is 'VectorBuild', regardless of the previous state
+                //...else if the new state is 'VectorBuild'
                 case EditorState.VectorBuild:
+                    if (this.prevState === EditorState.VectorEdit)
+                        break;
 
                     if (this.gobj && this.gobj.selectedVectors.length > 0) {
                         const overlappedVector = this.gobj.vectors.find(obj => obj.doesCursorOverlap());
@@ -162,7 +164,7 @@ export class Editor {
                             this.resetGOBuffer();
                             this.transitionState(EditorState.View, false);
                             console.log('merged 2 vectors');
-                            return;
+                            break;
                         }
                     }
                     //add a vector object to the position of the cursor

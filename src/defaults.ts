@@ -88,9 +88,9 @@ const stateMap: Array<StateTransition> = [
     },
     {
         inputType: InputType.KeyPress,
-        key: 'v',
+        key: 'e',
         reqState: EditorState.VectorEdit,
-        nextState: EditorState.VectorDraw
+        nextState: EditorState.VectorBuild
     },
     {
         inputType: InputType.KeyPress,
