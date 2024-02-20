@@ -47,4 +47,17 @@ export default class VectorEO extends InteractiveEO {
         this.adjVectors.push(vector);
     }
 
+    // getOverlappedVector(): VectorEO {
+    //     function doesOverlap(self: VectorEO, vector: VectorEO): boolean {
+    //         const corners: Array<{x: number, y: number}> = [
+    //             {x: vector.x, y: vector.y},
+    //             {x: vector.x + vector.width, y: vector.y},
+    //             {x: vector.x, y: vector.y + vector.height},
+    //             {x: vector.x + vector.width, y: vector.y + vector.height}
+    //         ];
+    //         return corners.some(corner => (corner.x > self.x) && (corner.x < self.x + self.width) && (corner.y > self.y) && (corner.y < self.y + self.height));
+    //     }
+    //     return this.graphicObject.vectors.find(vector => doesOverlap(this, vector));
+    // }
+
 }

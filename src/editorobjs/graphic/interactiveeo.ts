@@ -61,7 +61,7 @@ export default class InteractiveEO extends EditorObject {
             this.editor.ctx.strokeRect(i, this.y + this.height + defaults.graphic.SELECTION_OFFSET - _miniw/2, _miniw, _miniw);
     }
 
-    protected doesCursorOverlap(): boolean {
+    doesCursorOverlap(): boolean {
         return (this.editor.cursor.x > (this.x - defaults.graphic.SELECTION_OFFSET))
         &&
         (this.editor.cursor.x < (this.x + this.width + defaults.graphic.SELECTION_OFFSET)) 

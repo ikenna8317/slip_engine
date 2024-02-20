@@ -103,7 +103,7 @@ export class Editor {
             if (e.repeat || !this.isCursorInBounds())
                 return;
 
-            this.transitionState(InputType.KeyPress, e.key);
+            this.processNextState(InputType.KeyPress, e.key);
         });
 
         
@@ -112,12 +112,12 @@ export class Editor {
             if (!this.isCursorInBounds())
                 return;
 
-            this.transitionState(InputType.MouseClick);
+            this.processNextState(InputType.MouseClick);
         });
 
         /* Whenever the state of the editor changes this listener is meant to perform special editor-wide actions that are not tied to any specific object */
         this.canvas.addEventListener('onstatechange', () => {
-            // console.log('state has changed from ' + this.prevState + ' to ' + this.state);
+            console.log('state has changed from ' + this.prevState + ' to ' + this.state);
             switch (this.state) {
                 //if the new state is 'View'
                 case EditorState.View:
@@ -149,6 +149,22 @@ export class Editor {
                 break;
                 //...else if the new state is 'VectorBuild', regardless of the previous state
                 case EditorState.VectorBuild:
+
+                    if (this.gobj && this.gobj.selectedVectors.length > 0) {
+                        const overlappedVector = this.gobj.vectors.find(obj => obj.doesCursorOverlap());
+                        console.log(overlappedVector);
+
+                        if (overlappedVector) {
+                            const currVector: VectorEO = this.gobj.selectedVectors[0];
+                            currVector.connect(overlappedVector);
+                            overlappedVector.connect(currVector);
+                            this.gobj.updateDimensions();
+                            this.resetGOBuffer();
+                            this.transitionState(EditorState.View, false);
+                            console.log('merged 2 vectors');
+                            return;
+                        }
+                    }
                     //add a vector object to the position of the cursor
                     this.addVector(this.cursor.x, this.cursor.y);
                 break;
@@ -258,7 +274,7 @@ export class Editor {
         this.gobj.vectors.push(newVector);
     }
 
-    private transitionState(inputType: InputType, key?: string): StateTransition {
+    private processNextState(inputType: InputType, key?: string): StateTransition {
         /* find the next state to switch to depending on the current state and key pressed */
         const transition: StateTransition | undefined = stateMap.find(statePair => 
             statePair.inputType === inputType
@@ -275,11 +291,16 @@ export class Editor {
         }
 
         /* Update the previous and current state and let the page know we have changed the state of the editor */
-        this.prevState = this.state;
-        this.state = transition.nextState;
-        this.canvas.dispatchEvent(this.onStateChangeEvent);
+        this.transitionState(transition.nextState);
 
         return transition;
+    }
+
+    private transitionState(editorState: EditorState, dispatchChange: boolean = true): void {
+        this.prevState = this.state;
+        this.state = editorState;
+        if (dispatchChange)
+            this.canvas.dispatchEvent(this.onStateChangeEvent);
     }
 
     /* Debugging purposes only: list out the graph representation of the graphical object */
