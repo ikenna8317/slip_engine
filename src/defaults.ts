@@ -8,7 +8,8 @@ type Defaults = {
         SELECTION_OFFSET: number,
         SELECTION_BOX_BEAD_DIM: number,
         HIGHLIGHT_COLOR: string,
-        SELECT_COLOR: string
+        SELECT_COLOR: string,
+        MERGE_COLOR: string
     }
 };
 
@@ -109,7 +110,8 @@ const defaults: Defaults = {
         SELECTION_OFFSET: 5,
         SELECTION_BOX_BEAD_DIM: 5,
         HIGHLIGHT_COLOR: '#04a8d1',
-        SELECT_COLOR: '#33f1ff'
+        SELECT_COLOR: '#33f1ff',
+        MERGE_COLOR: '#ff5a08'
     }
 }
 

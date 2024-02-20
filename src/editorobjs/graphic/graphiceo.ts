@@ -33,7 +33,7 @@ export default class GraphicEO extends InteractiveEO {
 
     update(): void {
         super.update();
-        if (this.editor.state === EditorState.VectorEdit && this.editor.gobj === this)
+        if ((this.editor.state === EditorState.VectorEdit || this.editor.state === EditorState.VectorBuild) && this.editor.gobj === this)
             this.vectors.forEach(vector => vector.update());
     }
 

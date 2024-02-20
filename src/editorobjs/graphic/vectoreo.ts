@@ -17,8 +17,12 @@ export default class VectorEO extends InteractiveEO {
         if (this.selected)
             this.drawSelectionArc();
         else {
-            if (this.highlighted)
+            if (this.highlighted && this.editor.state === EditorState.VectorEdit) 
                 this.drawHighlightBox();
+            else if (this.highlighted && this.editor.state === EditorState.VectorBuild) {
+                this.drawMergeHighlightArc();
+                return;
+            }
             //draw a white circle representing the current vector itself
             this.editor.ctx.strokeStyle = '#000';
             this.editor.ctx.fillStyle = '#fff';
@@ -42,22 +46,16 @@ export default class VectorEO extends InteractiveEO {
         this.editor.ctx.fill();
     }
 
+    private drawMergeHighlightArc(): void {
+        this.editor.ctx.fillStyle = defaults.graphic.MERGE_COLOR;
+        this.editor.ctx.beginPath();
+        this.editor.ctx.arc(this.x, this.y, this.width * 2, 0, Math.PI * 2, true);
+        this.editor.ctx.fill();
+    }
+
     //adds a vector to the list of adjacent vectors
     connect(vector: VectorEO): void {
         this.adjVectors.push(vector);
     }
-
-    // getOverlappedVector(): VectorEO {
-    //     function doesOverlap(self: VectorEO, vector: VectorEO): boolean {
-    //         const corners: Array<{x: number, y: number}> = [
-    //             {x: vector.x, y: vector.y},
-    //             {x: vector.x + vector.width, y: vector.y},
-    //             {x: vector.x, y: vector.y + vector.height},
-    //             {x: vector.x + vector.width, y: vector.y + vector.height}
-    //         ];
-    //         return corners.some(corner => (corner.x > self.x) && (corner.x < self.x + self.width) && (corner.y > self.y) && (corner.y < self.y + self.height));
-    //     }
-    //     return this.graphicObject.vectors.find(vector => doesOverlap(this, vector));
-    // }
 
 }
