@@ -2,31 +2,36 @@ import { Editor, EditorState } from "../../editor";
 import InteractiveEO from "./interactiveeo";
 import VectorEO from "./vectoreo";
 
-type Connection = {
-    v1: VectorEO,
-    v2: VectorEO
-};
+/* 
+TODO: Implement this algorithm
 
-const isConnectionEqual = (c1: Connection, c2: Connection): boolean => {
-    function isVectorEqual(v1: VectorEO, v2: VectorEO): boolean {
-        return (v1.x === v2.x) && (v1.y === v2.y);
-    }
-    return (isVectorEqual(c1.v1, c2.v2) && isVectorEqual(c1.v2, c2.v1)) || (isVectorEqual(c1.v1, c2.v1) && isVectorEqual(c1.v2, c2.v2));
-}
+------------------------------------------
+Show mid vector between 2 vectors algorithm
+-------------------------------------------
+- For each vector in the graphics object:
+    - For each adjacent vector connected:
+        - Calculate the slope of the line between the vector and its adjacent
+        - Divide the y value of the cursor by its x value
+        - Compare the result of the division in the step above to the slope we calculated
+            - If the result is exactly equals to or within a margin of error to the slope then the cursor lies within the point of 
+              the line between the 2 vectors, in this case, break the loop and exit
+            - If not, continue the loop
+- If we never found any intersection then the cursor doesn't lie within any lines 
+*/
 
 export default class GraphicEO extends InteractiveEO {
     vectors: Array<VectorEO>;
     selectedVectors: Array<VectorEO>;
-    private extremeX: {min: number, max: number};
-    private extremeY: {min: number, max: number};
+    private rangeX: {min: number, max: number};
+    private rangeY: {min: number, max: number};
 
     constructor(editor: Editor, x: number, y: number) {
         super(editor, x, y);
         this.vectors = [];
         this.vectors.push(new VectorEO(this, x, y));
         this.selectedVectors = [this.vectors[0]];
-        this.extremeX = {min: x, max: x};
-        this.extremeY = {min: y, max: y};
+        this.rangeX = {min: x, max: x};
+        this.rangeY = {min: y, max: y};
     }
 
     draw(): void {
@@ -51,8 +56,8 @@ export default class GraphicEO extends InteractiveEO {
 
     updateDimensions(): void {
         const { width, height } = this.calcWidthAndHeight();
-        this.x = this.extremeX.min;
-        this.y = this.extremeY.min;
+        this.x = this.rangeX.min;
+        this.y = this.rangeY.min;
 
         this.width = width;
         this.height = height;
@@ -85,22 +90,22 @@ export default class GraphicEO extends InteractiveEO {
 
     private calcWidthAndHeight(): { width: number, height: number} {
         this.vectors.forEach(vector => this.findMinAndMax(vector));
-        const width = this.extremeX.max - this.extremeX.min;
-        const height = this.extremeY.max - this.extremeY.min;
+        const width = this.rangeX.max - this.rangeX.min;
+        const height = this.rangeY.max - this.rangeY.min;
 
         return { width, height };
     }
 
     private findMinAndMax(vector: VectorEO): void {
-        if (vector.x < this.extremeX.min)
-            this.extremeX.min = vector.x;
-        else if (vector.x > this.extremeX.max)
-            this.extremeX.max = vector.x;
+        if (vector.x < this.rangeX.min)
+            this.rangeX.min = vector.x;
+        else if (vector.x > this.rangeX.max)
+            this.rangeX.max = vector.x;
 
-        if (vector.y < this.extremeY.min)
-            this.extremeY.min = vector.y;
-        else if (vector.y > this.extremeY.max)
-            this.extremeY.max = vector.y;
+        if (vector.y < this.rangeY.min)
+            this.rangeY.min = vector.y;
+        else if (vector.y > this.rangeY.max)
+            this.rangeY.max = vector.y;
     }
 
 }
