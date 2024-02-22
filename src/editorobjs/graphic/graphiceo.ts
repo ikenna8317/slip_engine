@@ -2,11 +2,23 @@ import { Editor, EditorState } from "../../editor";
 import InteractiveEO from "./interactiveeo";
 import VectorEO from "./vectoreo";
 
+type Connection = {
+    v1: VectorEO,
+    v2: VectorEO
+};
+
+const isConnectionEqual = (c1: Connection, c2: Connection): boolean => {
+    function isVectorEqual(v1: VectorEO, v2: VectorEO): boolean {
+        return (v1.x === v2.x) && (v1.y === v2.y);
+    }
+    return (isVectorEqual(c1.v1, c2.v2) && isVectorEqual(c1.v2, c2.v1)) || (isVectorEqual(c1.v1, c2.v1) && isVectorEqual(c1.v2, c2.v2));
+}
+
 export default class GraphicEO extends InteractiveEO {
     vectors: Array<VectorEO>;
     selectedVectors: Array<VectorEO>;
-    extremeX: {min: number, max: number};
-    extremeY: {min: number, max: number};
+    private extremeX: {min: number, max: number};
+    private extremeY: {min: number, max: number};
 
     constructor(editor: Editor, x: number, y: number) {
         super(editor, x, y);

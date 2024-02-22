@@ -68,16 +68,14 @@ export class Editor {
         this.canvas.setAttribute('width', width.toString());
         this.canvas.setAttribute('height', height.toString());
         this.canvas.setAttribute('aria-label', 'editor');
-        this.canvas.setAttribute('background-color', '#33f1ff');
-        this.canvas.style.backgroundColor = '#fff';
+        this.canvas.style.backgroundColor = '#dbdbdb';
 
         /* Initialize the editor specific variables */
         this.ctx = this.canvas.getContext('2d');
         this.cursor = { x: 0, y: 0 };
         this.objs = [];
         this.onlyUpdateOnInput = true;
-        this.state = EditorState.View;
-        this.prevState = EditorState.View;
+        this.state = this.prevState = EditorState.View;
         this.gobj = null;
         this.selections = [];
         // this.currVector = null;
@@ -207,7 +205,6 @@ export class Editor {
         //TODO: add some basic shapes/objects to use an example to show the highlight and selection functionality
         // this.add(new Box(this, 150, 150));
 
-        // setInterval(() => console.log(this.gobj), 60000);
         //update the frame
         this.update();
     }
@@ -245,7 +242,7 @@ export class Editor {
     /* adds a vector to the global graphic object if it exists, otherwise create a new graphic object */
     private addVector(x: number, y: number): void {
         /* if more than one vector is selected then exit */
-        if (this.gobj && this.gobj.selectedVectors.length > 1)
+        if (this.gobj && (this.gobj.selectedVectors.length != 1))
             return;
 
         /* if the global graphic object is null (does not exists yet) */
