@@ -24,7 +24,7 @@ export default class GraphicEO extends InteractiveEO {
         super(editor, x, y);
         this.vectors = [];
         this.vectors.push(new VectorEO(this, x, y));
-        this.selectedVectors = [];
+        this.selectedVectors = [this.vectors[0]];
         this.extremeX = {min: x, max: x};
         this.extremeY = {min: y, max: y};
     }
@@ -65,6 +65,22 @@ export default class GraphicEO extends InteractiveEO {
             vector.highlighted = vector.selected = false;
        });
         this.selectedVectors.splice(0, this.selectedVectors.length)
+    }
+
+    addVector(x: number, y: number): void {
+        if (this.selectedVectors.length != 1)
+            return;
+
+        const currVector: VectorEO = this.selectedVectors[0];
+        const newVector: VectorEO = new VectorEO(this, x, y);
+
+        currVector.selected = false;
+        newVector.selected = true;
+
+        this.selectedVectors[0] = newVector;
+
+        currVector.connect(newVector);
+        this.vectors.push(newVector);
     }
 
     private calcWidthAndHeight(): { width: number, height: number} {

@@ -115,7 +115,7 @@ export class Editor {
 
         /* Whenever the state of the editor changes this listener is meant to perform special editor-wide actions that are not tied to any specific object */
         this.canvas.addEventListener('onstatechange', () => {
-            console.log('state has changed from ' + this.prevState + ' to ' + this.state);
+            // console.log('state has changed from ' + this.prevState + ' to ' + this.state);
             switch (this.state) {
                 //if the new state is 'View'
                 case EditorState.View:
@@ -152,30 +152,25 @@ export class Editor {
 
                     if (this.gobj && this.gobj.selectedVectors.length > 0) {
                         const overlappedVector = this.gobj.vectors.find(obj => obj.doesCursorOverlap());
-                        console.log(overlappedVector);
+                        // console.log(overlappedVector);
 
                         if (overlappedVector) {
                             const currVector: VectorEO = this.gobj.selectedVectors[0];
                             currVector.connect(overlappedVector);
-                            overlappedVector.connect(currVector);
                             this.gobj.updateDimensions();
                             this.resetGOBuffer();
                             this.transitionState(EditorState.View, false);
-                            console.log('merged 2 vectors');
                             break;
                         }
                     }
                     //add a vector object to the position of the cursor
-                    this.addVector(this.cursor.x, this.cursor.y);
+                    this.buildGraphicObject(this.cursor.x, this.cursor.y);
                 break;
                 case EditorState.VectorEdit:
                     if (this.prevState === EditorState.View) {
                         const selectedObj: InteractiveEO = this.selections.find(obj => obj instanceof GraphicEO)
-                        // console.log('vector edit mode');
-                        // console.log(selectedObj);
 
                         if (selectedObj && selectedObj instanceof GraphicEO) {
-                            // console.log('selected the graphics object');
                             this.gobj = selectedObj;
                         }
                     } else if (this.prevState === EditorState.VectorEdit) {
@@ -240,37 +235,20 @@ export class Editor {
     }
 
     /* adds a vector to the global graphic object if it exists, otherwise create a new graphic object */
-    private addVector(x: number, y: number): void {
+    private buildGraphicObject(x: number, y: number): void {
         /* if more than one vector is selected then exit */
         if (this.gobj && (this.gobj.selectedVectors.length != 1))
             return;
 
         /* if the global graphic object is null (does not exists yet) */
-        if (!this.gobj) {
+        if (!this.gobj && this.state === EditorState.VectorBuild) {
             //create a new graphic object, put it into the buffer, select its root vector and add it to the display list
             this.gobj = new GraphicEO(this, x, y);
-            this.gobj.selectedVectors.push(this.gobj.vectors[0]);
             this.add(this.gobj);
-            // console.log('New graphic object:');
-            // this.logVectors(this.gobj);
             return;
         }
     
-        /* the currently selected vector in which the new vector will be 
-        connected to */
-        const currVector: VectorEO = this.gobj.selectedVectors[0];
-        
-        /* if the global graphic object exists then create a new vector,
-          add it to the global graphic object */
-        const newVector: VectorEO = new VectorEO(this.gobj, x, y);
-        currVector.connect(newVector);
-        newVector.connect(currVector);
-        currVector.selected = false;
-
-        /* make the newly created vector the currently selected vector */
-        this.gobj.selectedVectors[0] = newVector;
-        newVector.selected = true;
-        this.gobj.vectors.push(newVector);
+        this.gobj.addVector(x, y);
     }
 
     private processNextState(inputType: InputType, key?: string): StateTransition {

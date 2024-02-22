@@ -23,7 +23,7 @@ export default class VectorEO extends InteractiveEO {
                 this.drawMergeHighlightArc();
                 return;
             }
-            if ((this.editor.state === EditorState.VectorBuild) || (this.editor.state === EditorState.VectorEdit) && this.graphicObject.editor.gobj === this.graphicObject) {
+            if (((this.editor.state === EditorState.VectorBuild) || (this.editor.state === EditorState.VectorEdit)) && this.graphicObject.editor.gobj === this.graphicObject) {
                 //draw a white circle representing the current vector itself
                 this.editor.ctx.strokeStyle = '#000';
                 this.editor.ctx.fillStyle = '#fff';
