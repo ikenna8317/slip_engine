@@ -156,6 +156,8 @@ export class Editor {
 
                         if (overlappedVector) {
                             const currVector: VectorEO = this.gobj.selectedVectors[0];
+                            this.gobj.path.moveTo(currVector.x, currVector.y);
+                            this.gobj.path.lineTo(overlappedVector.x, overlappedVector.y);
                             currVector.connect(overlappedVector);
                             this.gobj.updateDimensions();
                             this.resetGOBuffer();

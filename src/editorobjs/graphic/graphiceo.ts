@@ -5,6 +5,7 @@ import VectorEO from "./vectoreo";
 /* 
 TODO: Implement this algorithm
 
+will add webassembly to offload expensive array calculations from the ui thread
 ------------------------------------------
 Show mid vector between 2 vectors algorithm
 -------------------------------------------
@@ -22,8 +23,13 @@ Show mid vector between 2 vectors algorithm
 export default class GraphicEO extends InteractiveEO {
     vectors: Array<VectorEO>;
     selectedVectors: Array<VectorEO>;
+
+    /*  */
     private rangeX: {min: number, max: number};
     private rangeY: {min: number, max: number};
+
+    /* The built path2d that the editor canvas context renders */
+    path: Path2D;
 
     constructor(editor: Editor, x: number, y: number) {
         super(editor, x, y);
@@ -32,19 +38,14 @@ export default class GraphicEO extends InteractiveEO {
         this.selectedVectors = [this.vectors[0]];
         this.rangeX = {min: x, max: x};
         this.rangeY = {min: y, max: y};
+
+        this.path = new Path2D();
     }
 
     draw(): void {
-        this.vectors.forEach(vector => {
-            vector.adjVectors.forEach(adjVector => {
-                this.editor.ctx.beginPath();
-                this.editor.ctx.strokeStyle = '#000';
-                this.editor.ctx.moveTo(vector.x, vector.y);
-                this.editor.ctx.lineTo(adjVector.x, adjVector.y);
-                this.editor.ctx.stroke();
-            });
-            vector.draw();
-        });
+        this.editor.ctx.strokeStyle = '#000';
+        this.editor.ctx.stroke(this.path);
+        this.vectors.forEach(vector => vector.draw());
         super.draw();
     }
 
@@ -85,6 +86,11 @@ export default class GraphicEO extends InteractiveEO {
         this.selectedVectors[0] = newVector;
 
         currVector.connect(newVector);
+
+        //update the path
+        this.path.moveTo(currVector.x, currVector.y);
+        this.path.lineTo(newVector.x, newVector.y);
+
         this.vectors.push(newVector);
     }
 
