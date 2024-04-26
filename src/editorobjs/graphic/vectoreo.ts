@@ -23,13 +23,15 @@ export default class VectorEO extends InteractiveEO {
                 this.drawMergeHighlightArc();
                 return;
             }
-            //draw a white circle representing the current vector itself
-            this.editor.ctx.strokeStyle = '#000';
-            this.editor.ctx.fillStyle = '#fff';
-            this.editor.ctx.beginPath();
-            this.editor.ctx.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
-            this.editor.ctx.stroke();
-            this.editor.ctx.fill();
+            if (((this.editor.state === EditorState.VectorBuild) || (this.editor.state === EditorState.VectorEdit)) && this.graphicObject.editor.gobj === this.graphicObject) {
+                //draw a white circle representing the current vector itself
+                this.editor.ctx.strokeStyle = '#000';
+                this.editor.ctx.fillStyle = '#fff';
+                this.editor.ctx.beginPath();
+                this.editor.ctx.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
+                this.editor.ctx.stroke();
+                this.editor.ctx.fill();
+            }
         }
     }
 
@@ -39,7 +41,7 @@ export default class VectorEO extends InteractiveEO {
 
     private drawSelectionArc(): void {
         this.editor.ctx.strokeStyle = '#000';
-        this.editor.ctx.fillStyle = defaults.graphic.SELECT_COLOR;
+        this.editor.ctx.fillStyle = defaults.graphic.VECTOR_SELECT_COLOR;
         this.editor.ctx.beginPath();
         this.editor.ctx.arc(this.x, this.y, this.width * 2, 0, Math.PI * 2, true);
         this.editor.ctx.stroke();
@@ -47,7 +49,7 @@ export default class VectorEO extends InteractiveEO {
     }
 
     private drawMergeHighlightArc(): void {
-        this.editor.ctx.fillStyle = defaults.graphic.MERGE_COLOR;
+        this.editor.ctx.fillStyle = defaults.graphic.VECTOR_MERGE_COLOR;
         this.editor.ctx.beginPath();
         this.editor.ctx.arc(this.x, this.y, this.width * 2, 0, Math.PI * 2, true);
         this.editor.ctx.fill();
