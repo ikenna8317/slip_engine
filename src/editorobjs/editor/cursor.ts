@@ -9,7 +9,7 @@ export class EVectorCursor extends EditorObject {
         this.active = false;
     }
     preUpdate(): void {
-        this.active = (this.editor.state != EditorState.View) && this.editor.isCursorInBounds();
+        this.active = ((this.editor.state === EditorState.VectorDraw) || (this.editor.state === EditorState.VectorBuild)) && this.editor.isCursorInBounds();
     }
     draw(): void {
         this.editor.ctx.strokeStyle = '#000';
@@ -19,8 +19,10 @@ export class EVectorCursor extends EditorObject {
 
         if (this.editor.state === EditorState.VectorBuild && this.editor.gobj) {
             const selectedEditorVector: VectorEO = this.editor.gobj.selectedVectors[0];
-            this.editor.ctx.moveTo(this.x, this.y);
-            this.editor.ctx.lineTo(selectedEditorVector.x, selectedEditorVector.y);
+            if (selectedEditorVector) {
+                this.editor.ctx.moveTo(this.x, this.y);
+                this.editor.ctx.lineTo(selectedEditorVector.x, selectedEditorVector.y);
+            }
         }
         this.editor.ctx.stroke();
 

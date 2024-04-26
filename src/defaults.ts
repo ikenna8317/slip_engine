@@ -1,11 +1,15 @@
 import { EditorState } from "./editor";
 type Defaults = {
     cursor: {
-        CIRCLE_CURSOR_RADIUS: number
+        CIRCLE_CURSOR_RADIUS: number,
+        MOUSE_OFFSET: number
     },
     graphic: {
         SELECTION_OFFSET: number,
-        SELECTION_BOX_BEAD_DIM: number
+        SELECTION_BOX_BEAD_DIM: number,
+        HIGHLIGHT_COLOR: string,
+        VECTOR_SELECT_COLOR: string,
+        VECTOR_MERGE_COLOR: string
     }
 };
 
@@ -64,17 +68,50 @@ const stateMap: Array<StateTransition> = [
         inputType: InputType.MouseClick,
         reqState: EditorState.View,
         nextState: EditorState.View
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'Enter',
+        reqState: EditorState.View,
+        nextState: EditorState.VectorEdit
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'Enter',
+        reqState: EditorState.VectorEdit,
+        nextState: EditorState.View
+    },
+    {
+        inputType: InputType.MouseClick,
+        reqState: EditorState.VectorEdit,
+        nextState: EditorState.VectorEdit
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'e',
+        reqState: EditorState.VectorEdit,
+        nextState: EditorState.VectorBuild
+    },
+    {
+        inputType: InputType.KeyPress,
+        key: 'e',
+        reqState: EditorState.VectorBuild,
+        nextState: EditorState.VectorEdit
     }
 ];
 
 /* Constants used throughout the editor */
 const defaults: Defaults = {
     cursor: {
-        CIRCLE_CURSOR_RADIUS: 4
+        CIRCLE_CURSOR_RADIUS: 4,
+        MOUSE_OFFSET: 10
     },
     graphic: {
         SELECTION_OFFSET: 5,
-        SELECTION_BOX_BEAD_DIM: 5
+        SELECTION_BOX_BEAD_DIM: 5,
+        HIGHLIGHT_COLOR: '#04a8d1',
+        VECTOR_SELECT_COLOR: '#33f1ff',
+        VECTOR_MERGE_COLOR: '#ff5a08'
     }
 }
 
