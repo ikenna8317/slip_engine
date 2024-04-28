@@ -3,9 +3,9 @@ import { EVectorCursor } from "./editorobjs/editor/cursor";
 import GraphicEO from "./editorobjs/graphic/graphiceo";
 
 import { defaults, InputType, stateMap, StateTransition } from "./defaults";
-import VectorEO from "./editorobjs/graphic/vectoreo";
-import Box from "./editorobjs/graphic/box";
 import InteractiveEO from "./editorobjs/graphic/interactiveeo";
+
+import stateReducer from "./reducer";
 
 //basic configuration object for setting up the editor canvas
 type EditorConfig = {
@@ -116,83 +116,7 @@ export class Editor {
         /* Whenever the state of the editor changes this listener is meant to perform special editor-wide actions that are not tied to any specific object */
         this.canvas.addEventListener('onstatechange', () => {
             // console.log('state has changed from ' + this.prevState + ' to ' + this.state);
-            switch (this.state) {
-                //if the new state is 'View'
-                case EditorState.View:
-                    /* if the previous state was 'VectorBuild' that means we just finished creating a graphic object,
-                     in that case empty the buffer holding the currently drawn graphics object */ 
-                     //OR
-                    /* if the previous state was 'VectorDraw' and the global graphic object is not null,
-                    then that means the user is done creating the graphics object, empty the buffer */
-                    if ((this.prevState === EditorState.VectorBuild)
-                        || 
-                        (this.prevState === EditorState.VectorDraw && this.gobj)
-                        ||
-                        (this.prevState === EditorState.VectorEdit)) {
-                        this.gobj.updateDimensions();
-                        this.resetGOBuffer();
-                    } else if (this.prevState === EditorState.View) {
-                        //unselect all previously selected objects and empty the selections array
-                        this.selections.forEach(obj => obj.selected = false);
-                        this.selections.splice(0, this.selections.length);
-
-                        //find the first highlighted object and mark it as selected
-                        const selectedObj: EditorObject = this.objs.find(obj => obj instanceof InteractiveEO && obj.highlighted);
-
-                        if (selectedObj && selectedObj instanceof InteractiveEO) {
-                            selectedObj.selected = true;
-                            this.selections.push(selectedObj);
-                        }
-                    }
-                break;
-                //...else if the new state is 'VectorBuild'
-                case EditorState.VectorBuild:
-                    if (this.prevState === EditorState.VectorEdit)
-                        break;
-
-                    if (this.gobj && this.gobj.selectedVectors.length > 0) {
-                        const overlappedVector = this.gobj.vectors.find(obj => obj.doesCursorOverlap());
-                        // console.log(overlappedVector);
-
-                        if (overlappedVector) {
-                            const currVector: VectorEO = this.gobj.selectedVectors[0];
-                            this.gobj.path.moveTo(currVector.x, currVector.y);
-                            this.gobj.path.lineTo(overlappedVector.x, overlappedVector.y);
-                            currVector.connect(overlappedVector);
-                            this.gobj.updateDimensions();
-                            this.resetGOBuffer();
-                            this.transitionState(EditorState.View, false);
-                            break;
-                        }
-                    }
-                    //add a vector object to the position of the cursor
-                    this.buildGraphicObject(this.cursor.x, this.cursor.y);
-                break;
-                case EditorState.VectorEdit:
-                    if (this.prevState === EditorState.View) {
-                        const selectedObj: InteractiveEO = this.selections.find(obj => obj instanceof GraphicEO)
-
-                        if (selectedObj && selectedObj instanceof GraphicEO) {
-                            this.gobj = selectedObj;
-                        }
-                    } else if (this.prevState === EditorState.VectorEdit) {
-                        /* check for selected vectors */
-                        //mark all currently selected vectors as false and clear the list of selected vectors
-                        // console.log('number of selected vectors: %d', this.gobj.selectedVectors.length);
-                        this.gobj.selectedVectors.forEach(vector => vector.selected = false);
-                        this.gobj.selectedVectors.splice(0, this.gobj.selectedVectors.length);
-
-                        //find the first vector that is highlighted
-                        const selectedVector: VectorEO = this.gobj.vectors.find(vector => vector.highlighted);
-
-                        //add the selected vector to the object list of selected vectors and mark the vector as selected
-                        if (selectedVector) {
-                            this.gobj.selectedVectors.push(selectedVector);
-                            selectedVector.selected = true;
-                        }
-                    }
-                break;
-            }
+            stateReducer(this);
             this.update();
         });
 
@@ -237,7 +161,7 @@ export class Editor {
     }
 
     /* adds a vector to the global graphic object if it exists, otherwise create a new graphic object */
-    private buildGraphicObject(x: number, y: number): void {
+    buildGraphicObject(x: number, y: number): void {
         /* if more than one vector is selected then exit */
         if (this.gobj && (this.gobj.selectedVectors.length != 1))
             return;
@@ -253,7 +177,7 @@ export class Editor {
         this.gobj.addVector(x, y);
     }
 
-    private processNextState(inputType: InputType, key?: string): StateTransition {
+    processNextState(inputType: InputType, key?: string): StateTransition {
         /* find the next state to switch to depending on the current state and key pressed */
         const transition: StateTransition | undefined = stateMap.find(statePair => 
             statePair.inputType === inputType
@@ -275,7 +199,7 @@ export class Editor {
         return transition;
     }
 
-    private transitionState(editorState: EditorState, dispatchChange: boolean = true): void {
+    transitionState(editorState: EditorState, dispatchChange: boolean = true): void {
         this.prevState = this.state;
         this.state = editorState;
         if (dispatchChange)
@@ -294,7 +218,7 @@ export class Editor {
     }
 
     /* nullify the global graphics object to make space for the creation of new graphic objects */
-    private resetGOBuffer(): void {
+    resetGOBuffer(): void {
         if (this.gobj) {
             this.gobj.unselectAll();
             this.gobj = null;
